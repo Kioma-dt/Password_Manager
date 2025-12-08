@@ -4,6 +4,8 @@ public rc_4
 
 section '.data' writable
 
+    S db 255 dup(?)
+
 section '.text' executable
 rc_4:
     ; rdi - key
@@ -12,23 +14,21 @@ rc_4:
     ; rcx - datalen
 
 
-    push rbp
-
     ; push callee-saved registers
+    push rbp
     push rbx
     push r12
     push r13
     push r14
     push r15
 
+    mov rbp, rsp
+
     ; r8 - data
     mov r8, rdx
 
-    ; enlarge stack
-    mov rbp, rsp
-    sub rsp, 256
     ; r12 - S[0]
-    mov r12, rsp
+    lea r12, [S]
 
     test rsi, rsi
     jz .done
