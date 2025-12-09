@@ -4,6 +4,10 @@
 #include <string>
 #include <filesystem>
 #include <vector>
+#include <thread>
+#include <atomic>
+#include <chrono>
+
 
 extern "C" void rc_4(const char *key, size_t keylen,
                      char *data, size_t datalen);
@@ -18,8 +22,31 @@ extern "C" size_t read_from_file(const char* filename,
 extern "C" void write_to_file(const char *filename,
                               const char *data,
                             size_t len);
+extern "C" long long now_ms();
+
+std::atomic<long long> last_action_time_ms(0);
+int timeout_seconds = 20;
 
 
+void watchdog_thread()
+{
+    while (true) {
+        long long now = now_ms();
+        long long diff = now - last_action_time_ms.load();
+
+        if (diff > timeout_seconds * 1000) {
+            std::cout << "\nTime is out. Program is closed";
+            exit(0);
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+}
+
+
+
+
+const int timeout = 5;
 bool is_ui_loop_cont = true;
 const char *chars = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM_!?.,@#$%^&*-+=";
 std::string private_key;
@@ -45,6 +72,8 @@ void create_record();
 
 int main(){
     my_rand_set_seed();
+    last_action_time_ms.store(now_ms());
+    std::thread(watchdog_thread).detach();
     const char *private_key_file = "data/private_key.txt";
     char private_key_buffer[16];
 
@@ -77,6 +106,7 @@ int main(){
         std::cout << std::string(20, '-') << '\n';
         std::cout << "Option: ";
         std::getline(std::cin, user_option);
+        last_action_time_ms.store(now_ms());
         user_option = trim_string(user_option);
         system("clear");
 
@@ -212,6 +242,7 @@ void create_record(){
     while(true){
         std::cout << "Enter description for your password (8 to 32 chars): ";
         std::getline(std::cin, description);
+        last_action_time_ms.store(now_ms());
         if (description.size() >= 8 and description.size() <= 32){
             break;
         }
@@ -244,6 +275,7 @@ void create_record(){
         std::cout << std::string(20, '-') << '\n';
         std::cout << "Option: ";
         std::getline(std::cin, user_option);
+        last_action_time_ms.store(now_ms());
         user_option = trim_string(user_option);
         system("clear");
 
@@ -308,6 +340,7 @@ std::string create_password(){
         std::cout << std::string(20, '-') << '\n';
         std::cout << "Enter your password (8 to 32 chars): ";
         std::getline(std::cin, password);
+        last_action_time_ms.store(now_ms());
         if (password.size() >= 8 and password.size() <= 32){
             break;
         }
@@ -362,6 +395,14 @@ void select_record(){
     system("clear");
     std::vector<std::pair<std::string, std::string>> records = read_records();
 
+    if (records.empty()){
+        std::cout << "No records!\n";
+        std::cout << "Press any key ...\n";
+        getchar();
+        system("clear");
+        return;
+    }
+
     std::string rec;
     int record_num = -1;
 
@@ -378,6 +419,7 @@ void select_record(){
         std::cout << std::string(20, '-') << '\n';
         std::cout << "Choose record: ";
         std::getline(std::cin, rec);
+        last_action_time_ms.store(now_ms());
         size_t pos = 0;
 
         try{
@@ -441,6 +483,7 @@ void select_record(){
         std::cout << std::string(20, '-') << '\n';
         std::cout << "Option: ";
         std::getline(std::cin, user_option);
+        last_action_time_ms.store(now_ms());
         user_option = trim_string(user_option);
         system("clear");
 
@@ -490,6 +533,7 @@ void change_record_description(std::vector<std::pair<std::string, std::string>>&
     while (true){
         std::cout << "Enter description for your password (8 to 32 chars): ";
         std::getline(std::cin, description);
+        last_action_time_ms.store(now_ms());
         if (description.size() >= 8 and description.size() <= 32){
             break;
         }
@@ -530,6 +574,7 @@ void change_record_password(std::vector<std::pair<std::string, std::string>>& re
         std::cout << std::string(20, '-') << '\n';
         std::cout << "Option: ";
         std::getline(std::cin, user_option);
+        last_action_time_ms.store(now_ms());
         user_option = trim_string(user_option);
         system("clear");
 

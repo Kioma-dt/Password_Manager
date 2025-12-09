@@ -11,28 +11,26 @@ write_to_file:
     push r12
     push r13
 
-    mov r12, rdi      ; filename
-    mov rbx, rsi      ; data pointer
-    mov r13, rdx      ; data length
+    mov r12, rdi      
+    mov rbx, rsi      
+    mov r13, rdx     
 
-    ; open(filename, O_WRONLY|O_CREAT|O_TRUNC, 0644)
     mov rax, 2
     mov rdi, r12
     mov rsi, 0x241
     mov rdx, 0644o
     syscall
-    mov r12, rax      ; fd
+
+    mov r12, rax      
     test r12, r12
     js .exit
 
-    ; write(fd, data, len)
     mov rax, 1
     mov rdi, r12
     mov rsi, rbx
     mov rdx, r13
     syscall
 
-    ; close(fd)
     mov rax, 3
     mov rdi, r12
     syscall
