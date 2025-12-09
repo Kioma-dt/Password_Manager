@@ -36,14 +36,18 @@ int main() {
     // }
     // std::cout << str << std::endl;
 
-    const char *filename = "file.txt";
-    unsigned char *buffer = new unsigned char[256];
+    // const char *filename = "file.txt";
+    // unsigned char *buffer = new unsigned char[256];
 
-    int a = read_from_file(filename, buffer, 256);
+    // int a = read_from_file(filename, buffer, 256);
 
-    std::string str = (const char*)buffer;
+    // std::string str = (const char*)buffer;
 
-    std::cout << str << '\n';
+    // std::cout << str << '\n';
+    char *buffer = "abc\0\0";
+    std::string str = std::string(buffer, 4).c_str();
+
+    std::cout << str.size() << '\n';
 
     return 0;
 }
