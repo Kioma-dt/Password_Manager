@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <limits>
 #include <string>
+#include <filesystem>
 #include <vector>
 
 extern "C" void rc_4(const char *key, size_t keylen,
@@ -158,16 +159,22 @@ std::vector<std::pair<std::string,std::string>>  read_records(){
     std::string temp_str;
     std::vector<std::pair<std::string, std::string>> res;
 
-    for (int i = 0; i < str.size(); i++){
-        if (str[i] == ' '){
-            temp_str = str.substr(j, i - j);
-            j = i + 1;
-        }
-        if (str[i] == '\n' || i == str.size() - 1){
-            res.push_back(std::make_pair(temp_str, str.substr(j, i - j)));
-            j = i + 1;
+    if (std::filesystem::exists(records_file) 
+    && !std::filesystem::is_empty(records_file)){
+
+        for (int i = 0; i < str.size(); i++){
+            if (str[i] == ' '){
+                temp_str = str.substr(j, i - j);
+                j = i + 1;
+            }
+            if (str[i] == '\n'){
+                res.push_back(std::make_pair(temp_str, str.substr(j, i - j)));
+                j = i + 1;
+            }
         }
     }
+
+
 
     return res;
 }
@@ -176,12 +183,16 @@ void write_records(std::vector<std::pair<std::string,std::string>> records){
     const char *records_file = "data/passwords.txt";
     std::string res = "";
 
-    for (int i = 0; i < records.size();i++){
-        res += records[i].first + ' ' + records[i].second +'\n';
+    if (std::filesystem::exists(records_file)){
+        
+        for (int i = 0; i < records.size();i++){
+            res += records[i].first + ' ' + records[i].second +'\n';
+        }
+
+
+        write_to_file(records_file, res.c_str(), res.size()); 
     }
 
-
-    write_to_file(records_file, res.c_str(), res.size()); 
 }
 
 void create_record(){
